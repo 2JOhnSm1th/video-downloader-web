@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request
-import os
+from flask import Flask, render_template, request, redirect, send_file, send_from_directory
 import subprocess
 
 app = Flask(__name__)
@@ -14,17 +13,24 @@ def download():
     download_type = request.form['type']
     quality = request.form['quality']
 
-    save_path = os.path.join(os.getcwd(), "downloads")
-    os.makedirs(save_path, exist_ok=True)
-
     if download_type == 'mp3':
-        command = f'yt-dlp -f bestaudio --extract-audio --audio-format mp3 -o "{save_path}/%(title)s.%(ext)s" "{url}"'
+        command = f'yt-dlp -g -f bestaudio "{url}"'
     else:
-        command = f'yt-dlp -f "bestvideo[height<={quality}]+bestaudio/best" -o "{save_path}/%(title)s.%(ext)s" "{url}"'
+        command = f'yt-dlp -g -f "bestvideo[height<={quality}]+bestaudio/best" "{url}"'
 
-    subprocess.run(command, shell=True)
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
 
-    return "Download Successful!"
+    if result.returncode == 0:
+        download_link = result.stdout.strip().split('\n')[0]
+        return redirect(download_link)
+    else:
+        return "❌ Download link could not be generated. Please check the URL."
+
+# ⚙️ Specific route for your propeller verification file
+@app.route('/propeller-verification-file.js')
+def serve_verification_file():
+    import os
+    return send_from_directory(os.getcwd(), 'propeller-verification-file.js')
 
 if __name__ == '__main__':
     app.run(debug=True)
