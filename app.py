@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, send_file, send_from_directory
-import subprocess
+from flask import Flask, render_template, request, redirect, send_from_directory
+from yt_dlp import YoutubeDL
 import os
 
 app = Flask(__name__)
@@ -14,26 +14,25 @@ def download():
     download_type = request.form['type']
     quality = request.form['quality']
 
-    if download_type == 'mp3':
-        command = f'yt-dlp -g -f bestaudio "{url}"'
-    else:
-        command = f'yt-dlp -g -f "bestvideo[height<={quality}]+bestaudio/best" "{url}"'
+    ydl_opts = {
+        'format': f'bestvideo[height<={quality}]+bestaudio/best' if download_type == 'mp4' else 'bestaudio',
+        'quiet': True,
+        'skip_download': True,
+        'noplaylist': True
+    }
 
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            download_link = info['url']
+            return redirect(download_link)
+    except Exception as e:
+        return f"❌ Error generating download link: {str(e)}"
 
-    if result.returncode == 0:
-        download_link = result.stdout.strip().split('\n')[0]
-        return redirect(download_link)
-    else:
-        return "❌ Download link could not be generated. Please check the URL."
-
-# ⚙️ Specific route for your propeller verification file
 @app.route('/propeller-verification-file.js')
 def serve_verification_file():
     return send_from_directory('static', 'propeller-verification-file.js')
 
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
