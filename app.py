@@ -32,5 +32,8 @@ def serve_verification_file():
     import os
     return send_from_directory(os.getcwd(), 'propeller-verification-file.js')
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+
