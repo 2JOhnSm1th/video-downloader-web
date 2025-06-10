@@ -30,7 +30,7 @@ def download():
 # ⚙️ Specific route for your propeller verification file
 @app.route('/propeller-verification-file.js')
 def serve_verification_file():
-    return send_from_directory(os.getcwd(), 'propeller-verification-file.js')
+    return send_from_directory('static', 'propeller-verification-file.js')
 
 
 if __name__ == '__main__':
