@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, send_file, send_from_directory
 import subprocess
+import os
 
 app = Flask(__name__)
 
@@ -29,7 +30,6 @@ def download():
 # ⚙️ Specific route for your propeller verification file
 @app.route('/propeller-verification-file.js')
 def serve_verification_file():
-    import os
     return send_from_directory(os.getcwd(), 'propeller-verification-file.js')
 
 
